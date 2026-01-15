@@ -66,7 +66,7 @@ export default async function HomePage() {
           </h1>
 
           <p className="text-black/75 leading-relaxed max-w-prose">
-            [Your one-line subtitle here]
+            [Subtitle, description, subtitle, description, subtitle, description,]
           </p>
         </header>
 
