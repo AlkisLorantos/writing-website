@@ -1,65 +1,167 @@
-import Image from "next/image";
+import Link from "next/link";
+import { sanityClient } from "@/sanity/lib/client";
+import { HOME_QUERY } from "@/sanity/queries";
+import { NoteCardCompact } from "@/components/NoteCardCompact";
 
-export default function Home() {
+export const revalidate = 60;
+
+function formatDate(dateStr: string) {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+function estimateReadingTime(content: any) {
+  if (!content) return 5;
+
+  let text = "";
+  if (Array.isArray(content)) {
+    text = content
+      .filter((block: any) => block._type === "block")
+      .map(
+        (block: any) =>
+          block.children?.map((child: any) => child.text).join(" ") || ""
+      )
+      .join(" ");
+  } else if (typeof content === "string") {
+    text = content;
+  }
+
+  const words = text.trim().split(/\s+/).length;
+  const minutes = Math.ceil(words / 200);
+  return minutes;
+}
+
+function TagRow({ tags }: { tags?: string[] }) {
+  if (!tags?.length) return null;
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+    <div className="mt-3 flex flex-wrap gap-2">
+      {tags.slice(0, 4).map((t) => (
+        <Link
+          key={t}
+          href={`/tags/${encodeURIComponent(t)}`}
+          className="text-xs rounded-full border border-black/10 bg-[color:var(--paper)] px-2.5 py-1 text-black/70 hover:text-black transition-colors duration-200"
+        >
+          {t}
+        </Link>
+      ))}
     </div>
+  );
+}
+
+export default async function HomePage() {
+  const data = await sanityClient.fetch(HOME_QUERY);
+  const articles = data.articles ?? [];
+  const notes = data.notes ?? [];
+
+  return (
+    <main className="mx-auto max-w-[1080px] px-6 py-10 min-h-screen">
+      <div className="grid grid-cols-1 lg:grid-cols-[720px_320px] lg:gap-10">
+        <header className="space-y-3 mb-10">
+          <h1 className="font-serif text-3xl sm:text-4xl leading-tight tracking-tight">
+            Writing on politics, society and world affairs
+          </h1>
+
+          <p className="text-black/75 leading-relaxed max-w-prose">
+            [Your one-line subtitle here]
+          </p>
+        </header>
+
+        <aside className="hidden lg:block" />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-[720px_320px] lg:gap-10 lg:items-start">
+        <section className="space-y-8">
+          <div className="mb-8 pt-8 border-t border-black/10" />
+
+          <ul className="space-y-10">
+            {articles.map((a: any, idx: number) => {
+              const isLead = idx === 0;
+              const readingTime = estimateReadingTime(a.content || a.body);
+
+              return (
+                <li
+                  key={a.slug}
+                  className={
+                    isLead
+                      ? "pb-12 border-b border-black/20"
+                      : "pb-10 border-b border-black/10 last:border-b-0 last:pb-0"
+                  }
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <Link
+                      href={`/articles/${a.slug}`}
+                      className={
+                        isLead
+                          ? "font-serif text-3xl sm:text-4xl lg:text-5xl leading-[1.05] tracking-tight hover:underline transition-all duration-200"
+                          : "font-serif text-2xl sm:text-3xl leading-tight hover:underline transition-all duration-200"
+                      }
+                    >
+                      {a.title}
+                    </Link>
+                  </div>
+
+                  <div className="mt-2 flex items-center gap-3 text-xs text-black/60">
+                    <span>{formatDate(a.publishedAt)}</span>
+                    <span>•</span>
+                    <span>{readingTime} min read</span>
+                  </div>
+
+                  {a.summary ? (
+                    <p
+                      className={
+                        isLead
+                          ? "mt-4 text-black/80 leading-relaxed text-[18px]"
+                          : "mt-3 text-black/80 leading-relaxed text-[17px]"
+                      }
+                    >
+                      {a.summary}
+                    </p>
+                  ) : null}
+
+                  <TagRow tags={a.tags} />
+                </li>
+              );
+            })}
+          </ul>
+
+          <div className="pt-6">
+            <Link
+              href="/articles"
+              className="text-sm text-black/50 hover:text-black underline transition-colors duration-200"
+            >
+              View all essays →
+            </Link>
+          </div>
+        </section>
+
+        <aside className="mt-12 lg:mt-0 lg:sticky lg:top-6">
+          <div className="pt-2">
+            <div className="flex items-baseline justify-between">
+              <h2 className="text-xs tracking-widest uppercase text-black/60">
+                Quick thoughts
+              </h2>
+              <Link 
+                className="text-xs underline text-black/50 hover:text-black transition-colors duration-200" 
+                href="/notes"
+              >
+                All
+              </Link>
+            </div>
+
+            <div className="mt-3 h-px bg-black/10" />
+
+            <ul className="mt-4 space-y-1">
+              {notes.map((n: any) => (
+                <NoteCardCompact key={n._id} note={n} />
+              ))}
+            </ul>
+          </div>
+        </aside>
+      </div>
+    </main>
   );
 }

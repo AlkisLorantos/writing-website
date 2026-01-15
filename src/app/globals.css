@@ -1,26 +1,119 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --paper: #fcfbf8;
+  --ink: #111111;
+  --font-sans: system-ui;
+  --font-serif: Georgia;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+.font-serif {
+  font-family: var(--font-serif), ui-serif, Georgia, serif;
+}
+.font-sans {
+  font-family: var(--font-sans), system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html, body {
+  height: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  font-feature-settings: "liga" 1, "kern" 1;
+}
+
+a {
+  text-underline-offset: 3px;
+}
+
+.measure {
+  max-width: 65ch;
+}
+
+.measure-wide {
+  max-width: 75ch;
+}
+
+@layer base {
+  /* Global typography tuning for Tailwind Typography */
+  .prose {
+    /* main text */
+    --tw-prose-body: rgba(0, 0, 0, 0.85);
+    --tw-prose-lead: rgba(0, 0, 0, 0.85);
+
+    /* headings */
+    --tw-prose-headings: rgba(0, 0, 0, 0.85);
+
+    /* links */
+    --tw-prose-links: #1f4b99;
+
+    /* bold / emphasis */
+    --tw-prose-bold: rgba(0, 0, 0, 0.95);
+
+    /* quotes */
+    --tw-prose-quotes: rgba(0, 0, 0, 0.75);
+    --tw-prose-quote-borders: rgba(0, 0, 0, 0.15);
+
+    /* HR */
+    --tw-prose-hr: rgba(0, 0, 0, 0.12);
+
+    /* code */
+    --tw-prose-code: rgba(0, 0, 0, 0.9);
+    --tw-prose-pre-bg: rgba(0, 0, 0, 0.04);
+    --tw-prose-pre-code: rgba(0, 0, 0, 0.9);
+  }
+
+  .font-prose {
+    font-family: var(--font-prose), uii-serif, Georgia, serif;
+  }
+
+  .prose {
+    font-family: var(--font-prose), var(--font-serif), ui-serif, Georgia, serif;
+  }
+
+  .prose h1,
+  .prose h2,
+  .prose h3,
+  .prose h4 {
+    font-family: var(--font-serif), ui-serif, Georgia, serif;
+    letter-spacing: -0.01em;
+  }
+
+  /* rhythm */
+  .prose p {
+    line-height: 1.8;
+  }
+
+  /* links: underline style (color comes from --tw-prose-links) */
+  .prose a {
+    text-decoration-thickness: 1px;
+    text-underline-offset: 4px;
+  }
+
+  /* quotes: don't force italics */
+  .prose blockquote {
+    font-style: normal;
+  }
+
+  /* highlight */
+  .prose mark {
+    background: rgba(253, 230, 138, 0.7); /* amber-ish */
+    color: rgba(0, 0, 0, 0.95);
+    padding: 0.1em 0.25em;
+    border-radius: 0.25rem;
+  }
+
+  /* inline code */
+  .prose :not(pre) > code {
+    background: rgba(0, 0, 0, 0.04);
+    padding: 0.12em 0.28em;
+    border-radius: 0.25rem;
+  }
+
+  /* code blocks */
+  .prose pre {
+    border: 1px solid rgba(0, 0, 0, 0.1);
+  }
 }
