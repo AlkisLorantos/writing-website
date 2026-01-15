@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { PortableText } from "@portabletext/react";
+import { PortableText, PortableTextBlock } from "@portabletext/react";
 import Link from "next/link";
 
 import { sanityClient } from "@/sanity/lib/client";
 import { ARTICLE_BY_SLUG } from "@/sanity/queries";
+import { Article } from "@/types";
 
 export const revalidate = 60;
 
@@ -26,17 +27,22 @@ function formatDate(dateStr: string) {
   });
 }
 
-function estimateReadingTime(content: any) {
+function estimateReadingTime(content?: PortableTextBlock[] | string) {
   if (!content) return 5;
 
   let text = "";
   if (Array.isArray(content)) {
     text = content
-      .filter((block: any) => block._type === "block")
-      .map(
-        (block: any) =>
-          block.children?.map((child: any) => child.text).join(" ") || ""
-      )
+      .filter((block) => block._type === "block")
+      .map((block) => {
+        const children = block.children || [];
+        return children
+          .map((child: unknown) => {
+            const typedChild = child as { text?: string };
+            return typedChild.text || "";
+          })
+          .join(" ");
+      })
       .join(" ");
   }
 
@@ -49,12 +55,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
   const slug = await getSlug(params);
 
-  const article = await sanityClient.fetch(ARTICLE_BY_SLUG, { slug });
+  const article: Article | null = await sanityClient.fetch(ARTICLE_BY_SLUG, { slug });
   if (!article) return {};
 
-  const title = article.title as string;
-  const description =
-    (article.summary as string) || "Writing on politics, society and world affairs.";
+  const title = article.title;
+  const description = article.summary || "Writing on politics, society and world affairs.";
 
   const url = `${siteUrl}/articles/${slug}`;
 
@@ -74,7 +79,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function ArticlePage({ params }: PageProps) {
   const slug = await getSlug(params);
 
-  const article = await sanityClient.fetch(ARTICLE_BY_SLUG, { slug });
+  const article: Article | null = await sanityClient.fetch(ARTICLE_BY_SLUG, { slug });
   if (!article) return notFound();
 
   const readingTime = estimateReadingTime(article.body);
@@ -101,7 +106,7 @@ export default async function ArticlePage({ params }: PageProps) {
         </header>
 
         <div className="prose prose-lg max-w-none">
-          <PortableText value={article.body} />
+          <PortableText value={article.body || []} />
         </div>
 
         {article.tags?.length ? (

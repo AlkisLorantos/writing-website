@@ -16,10 +16,10 @@ export function Header() {
             </Link>
           </div>
 
-          {/* Desktop Navigation */}
+          {/* Desktop  */}
           <nav className="hidden md:flex items-center gap-5 text-xs tracking-widest uppercase text-black/60">
             <Link className="hover:text-black transition-colors duration-200" href="/articles">
-              Articles
+              Essays
             </Link>
             <Link className="hover:text-black transition-colors duration-200" href="/notes">
               Notes

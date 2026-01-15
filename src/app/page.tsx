@@ -2,6 +2,8 @@ import Link from "next/link";
 import { sanityClient } from "@/sanity/lib/client";
 import { HOME_QUERY } from "@/sanity/queries";
 import { NoteCardCompact } from "@/components/NoteCardCompact";
+import { Article, Note } from "@/types";
+import { PortableTextBlock } from "@portabletext/react";
 
 export const revalidate = 60;
 
@@ -14,17 +16,22 @@ function formatDate(dateStr: string) {
   });
 }
 
-function estimateReadingTime(content: any) {
+function estimateReadingTime(content?: PortableTextBlock[] | string) {
   if (!content) return 5;
 
   let text = "";
   if (Array.isArray(content)) {
     text = content
-      .filter((block: any) => block._type === "block")
-      .map(
-        (block: any) =>
-          block.children?.map((child: any) => child.text).join(" ") || ""
-      )
+      .filter((block) => block._type === "block")
+      .map((block) => {
+        const children = block.children || [];
+        return children
+          .map((child: unknown) => {
+            const typedChild = child as { text?: string };
+            return typedChild.text || "";
+          })
+          .join(" ");
+      })
       .join(" ");
   } else if (typeof content === "string") {
     text = content;
@@ -54,8 +61,8 @@ function TagRow({ tags }: { tags?: string[] }) {
 
 export default async function HomePage() {
   const data = await sanityClient.fetch(HOME_QUERY);
-  const articles = data.articles ?? [];
-  const notes = data.notes ?? [];
+  const articles: Article[] = data.articles ?? [];
+  const notes: Note[] = data.notes ?? [];
 
   return (
     <main className="mx-auto max-w-[1080px] px-6 py-10 min-h-screen">
@@ -66,7 +73,7 @@ export default async function HomePage() {
           </h1>
 
           <p className="text-black/75 leading-relaxed max-w-prose">
-            [Subtitle, description, subtitle, description, subtitle, description,]
+            [Your one-line subtitle here]
           </p>
         </header>
 
@@ -74,11 +81,12 @@ export default async function HomePage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[720px_320px] lg:gap-10 lg:items-start">
+
         <section className="space-y-8">
           <div className="mb-8 pt-8 border-t border-black/10" />
 
           <ul className="space-y-10">
-            {articles.map((a: any, idx: number) => {
+            {articles.map((a: Article, idx: number) => {
               const isLead = idx === 0;
               const readingTime = estimateReadingTime(a.content || a.body);
 
@@ -138,27 +146,31 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <aside className="mt-12 lg:mt-0 lg:sticky lg:top-6">
-          <div className="pt-2">
-            <div className="flex items-baseline justify-between">
-              <h2 className="text-xs tracking-widest uppercase text-black/60">
+        <aside className="mt-16 lg:mt-0 lg:sticky lg:top-6">
+          <div className="bg-black/[0.02] rounded-lg p-6 border border-black/5">
+            <div className="flex items-baseline justify-between mb-4">
+              <h2 className="font-serif text-lg">
                 Quick thoughts
               </h2>
               <Link 
-                className="text-xs underline text-black/50 hover:text-black transition-colors duration-200" 
+                className="text-xs tracking-widest uppercase text-black/50 hover:text-black transition-colors duration-200" 
                 href="/notes"
               >
-                All
+                View all
               </Link>
             </div>
 
-            <div className="mt-3 h-px bg-black/10" />
-
-            <ul className="mt-4 space-y-1">
-              {notes.map((n: any) => (
+            <ul className="space-y-4">
+              {notes.slice(0, 5).map((n: Note) => (
                 <NoteCardCompact key={n._id} note={n} />
               ))}
             </ul>
+          </div>
+
+          <div className="mt-6 text-center">
+            <p className="text-xs text-black/50 leading-relaxed">
+              Short observations and passing notes
+            </p>
           </div>
         </aside>
       </div>

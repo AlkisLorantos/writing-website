@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { sanityClient } from "@/sanity/lib/client";
 import { ARTICLES_INDEX } from "@/sanity/queries";
+import { Article } from "@/types";
+import { PortableTextBlock } from "@portabletext/react";
 
 export const revalidate = 60;
 
@@ -13,17 +15,22 @@ function formatDate(dateStr: string) {
   });
 }
 
-function estimateReadingTime(content: any) {
+function estimateReadingTime(content?: PortableTextBlock[] | string) {
   if (!content) return 5;
 
   let text = "";
   if (Array.isArray(content)) {
     text = content
-      .filter((block: any) => block._type === "block")
-      .map(
-        (block: any) =>
-          block.children?.map((child: any) => child.text).join(" ") || ""
-      )
+      .filter((block) => block._type === "block")
+      .map((block) => {
+        const children = block.children || [];
+        return children
+          .map((child: unknown) => {
+            const typedChild = child as { text?: string };
+            return typedChild.text || "";
+          })
+          .join(" ");
+      })
       .join(" ");
   } else if (typeof content === "string") {
     text = content;
@@ -35,7 +42,7 @@ function estimateReadingTime(content: any) {
 }
 
 export default async function ArticlesPage() {
-  const articles = await sanityClient.fetch(ARTICLES_INDEX);
+  const articles: Article[] = await sanityClient.fetch(ARTICLES_INDEX);
 
   return (
     <main className="mx-auto max-w-[1080px] px-6 py-10 min-h-screen">
@@ -52,7 +59,7 @@ export default async function ArticlesPage() {
         <div className="pt-8 border-t border-black/10" />
 
         <ul className="mt-8 space-y-10">
-          {articles.map((a: any) => {
+          {articles.map((a: Article) => {
             const readingTime = estimateReadingTime(a.content || a.body);
             
             return (

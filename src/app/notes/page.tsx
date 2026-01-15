@@ -1,25 +1,29 @@
 import { sanityClient } from "@/sanity/lib/client";
 import { NOTES_FEED } from "@/sanity/queries";
-import { Container } from "@/components/Container";
 import { NoteCard } from "@/components/NoteCard";
+import { Note } from "@/types";
 
 export const revalidate = 60;
 
 export default async function NotesPage() {
-  const notes = await sanityClient.fetch(NOTES_FEED);
+  const notes: Note[] = await sanityClient.fetch(NOTES_FEED);
 
   return (
-    <Container>
-      <header className="space-y-2">
-        <h1 className="text-2xl font-semibold">Notes</h1>
-        <p className="text-neutral-700">
-          Quick thoughts and observations / short form text.
+    <main className="mx-auto max-w-[720px] px-6 py-10 min-h-screen">
+      <header className="space-y-3 mb-10">
+        <h1 className="font-serif text-3xl sm:text-4xl leading-tight tracking-tight">
+          Quick thoughts
+        </h1>
+        <p className="text-black/75 leading-relaxed">
+          Short observations and passing notes
         </p>
       </header>
 
-      <ul className="mt-8 space-y-4">
-        {notes.map((n: any) => <NoteCard key={n._id} note={n} />)}
+      <div className="pt-8 border-t border-black/10" />
+
+      <ul className="mt-8 space-y-6">
+        {notes.map((n: Note) => <NoteCard key={n._id} note={n} />)}
       </ul>
-    </Container>
+    </main>
   );
 }
