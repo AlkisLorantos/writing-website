@@ -47,13 +47,13 @@ export function Footer() {
                 RSS Feed
               </a>
               <a 
-                href="mailto:your.email@example.com" 
+                href="mailto:alkis.lorantos@icloud.com" 
                 className="hover:text-black transition-colors duration-200"
               >
                 Email
               </a>
               <a 
-                href="https://twitter.com/yourusername" 
+                href="https://twitter.com/alkislorantos" 
                 className="hover:text-black transition-colors duration-200"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -61,7 +61,7 @@ export function Footer() {
                 Twitter
               </a>
               <a 
-                href="https://linkedin.com/in/yourprofile" 
+                href="https://www.linkedin.com/in/alkis-lorantos-0906801b4/" 
                 className="hover:text-black transition-colors duration-200"
                 target="_blank"
                 rel="noopener noreferrer"

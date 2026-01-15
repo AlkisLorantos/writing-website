@@ -64,7 +64,7 @@ export function Header() {
               href="/articles"
               onClick={() => setMobileMenuOpen(false)}
             >
-              Articles
+              Essays
             </Link>
             <Link
               className="hover:text-black transition-colors duration-200"
